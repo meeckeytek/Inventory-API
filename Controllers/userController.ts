@@ -1,6 +1,6 @@
-import msg from "../middlewares/messages";
 import bcrypt from "bcryptjs";
 import User from "../models/user.model";
+import msg from "../middlewares/messages";
 import { getToken } from "../middlewares/util";
 
 //Default message when the default API is visited
@@ -83,7 +83,7 @@ export const editUser = async (req: any, res: any) => {
   let user: any;
 
   try {
-    user = await User.findOne({ userName });
+    user = await User.findById(req.params.uId);
   } catch (error) {
     return res.status(500).json({ message: msg.serverError });
   }
@@ -112,3 +112,23 @@ export const editUser = async (req: any, res: any) => {
   }
   res.status(200).json({ message: msg.success });
 };
+
+
+// Edit user details
+export const userDetials = async (req: any, res: any) => {
+
+  let user: any;
+
+  try {
+    user = await User.findById(req.params.uId, '-password');
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+
+  if (!user) {
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  res.status(200).json(user)
+
+}
