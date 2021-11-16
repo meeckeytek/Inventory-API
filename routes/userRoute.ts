@@ -1,9 +1,8 @@
-import express from 'express';
 import {Router} from 'express'
-import * as adminController from '../Controllers/userController'
-const adminRoute = Router();
+import * as userController from '../Controllers/userController'
+const userRoute = Router();
 
-adminRoute.get('/', adminController.defaultMsg);
+userRoute.get('/', userController.defaultMsg);
 
 
-export default adminRoute;
+export default userRoute;
