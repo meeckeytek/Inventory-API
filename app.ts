@@ -20,8 +20,8 @@ app.use('/static', express.static("uploads"))
 app.use(express.static(path.join("uploads")));
 
 app.use("/api/v1/user", userRoute);
-app.use("/api/v1/cart", cartRoute);
 app.use("/api/v1/inventory", inventoryRoute);
+app.use("/api/v1/cart", cartRoute);
 app.use("/api/v1/order", orderRoute);
 
 mongoose
@@ -32,7 +32,7 @@ mongoose
     useFindAndModify: false,
   })
   .then(() => {
-    const port = process.env.PORT || 1149;
+    const port = process.env.PORT || 1049;
     app.listen(port, () => console.log(`listening on port ${port}`));
   })
   .catch((err) => {

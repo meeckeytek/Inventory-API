@@ -1,30 +1,20 @@
-const jwt = require("jsonwebtoken");
-const HttpError = require("./http-error");
+import msg from "./messages";
+import jwt from "jsonwebtoken";
 
-exports.getToken = (existed: any) => {
+export const getToken = (existed: any) => {
   return jwt.sign(
     {
       userId: existed._id,
-      userEmail: existed.email,
-      isAdmin: existed.isAdmin,
-      firstName: existed.firstName,
-      lastName: existed.lastName,
-      email: existed.email,
+      userFirstName: existed.firstName,
+      userLastName: existed.lastName,
+      userUserName: existed.userName
     },
     `${process.env.JWT_KEY}`,
     { expiresIn: "14d" }
   );
 };
 
-exports.resetPasswordToken = (user: any) => {
-  return jwt.sign(
-    { userId: user.id, userEmail: user.email },
-    `${process.env.JWT_KEY}`,
-    { expiresIn: "20m" }
-  );
-};
-
-exports.isAuth = (req: any, res: any, next: any) => {
+export const isAuth = (req: any, res: any, next: any) => {
   if (req.method === "OPTION") {
     return next();
   }
@@ -36,7 +26,7 @@ exports.isAuth = (req: any, res: any, next: any) => {
         `${process.env.JWT_KEY}`,
         function (err: any, decoded: any) {
           if (err) {
-            res.status(401).send({ message: "Invalid Token" });
+            res.status(401).json({ message: msg.invalidToken });
           } else {
             req.user = decoded;
             next();
@@ -44,19 +34,19 @@ exports.isAuth = (req: any, res: any, next: any) => {
         }
       );
     } else {
-      res.status(403).json("You are not authorized to perform this function");
+      res.status(403).json(msg.notAuthorized);
     }
   } catch (err) {
     return res
       .status(403)
-      .json("You are not authorized to perform this function");
+      .json(msg.notAuthorized);
   }
 };
 
-exports.isAdmin = (req: any, res: any, next: any) => {
+export const isAdmin = (req: any, res: any, next: any) => {
   if (req.user && req.user.isAdmin) {
     next();
   } else {
-    res.status(403).json({ message: "Invalid Admin token" });
+    res.status(403).json({ message: msg.invalidToken });
   }
 };
