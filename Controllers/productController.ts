@@ -120,7 +120,7 @@ export const deleteProduct = async (req: any, res: any) => {
   const {pId} = req.params
   let product: any;
   try {
-    await Product.findById(pId)
+   product = await Product.findById(pId)
   } catch (error) {
     return res.status(500).json({message: msg.serverError})
   }
