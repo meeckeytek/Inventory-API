@@ -3,12 +3,14 @@ import Cart from "../models/cart.model";
 import Product from "../models/product.model";
 import msg from "../middlewares/messages";
 
+//Default message when the default API is visited route
 export const defaultMsg = async (req: string, res: any) => {
   res.status(200).json({ message: message.defaultMsg });
 };
 
+//Adding product to cart controller
 export const addToCart = async (req: any, res: any) => {
-  const { pId } = req.params;
+  const { pId } = req.body;
 
   let product: any;
 
@@ -22,10 +24,8 @@ export const addToCart = async (req: any, res: any) => {
     return res.status(404).json({ message: msg.notFound });
   }
 
-  // console.log(product._id)
-
   let existingCart: any;
-  let eachProduct:any;
+  let eachProduct: any;
   try {
     existingCart = await Cart.findOne({
       customerId: req.user.userId,
@@ -34,49 +34,112 @@ export const addToCart = async (req: any, res: any) => {
   } catch (error) {
     return res.status(500).json({ message: msg.serverError });
   }
-  // console.log(existingCart)
-  let cartItems: any = existingCart.products;
-  // cartItems.forEach((prod:any) => console.log(prod))
+
+  let cartItems = {
+    productId: product._id,
+    name: product.name,
+    price: product.price,
+    quantity: 1,
+  };
   if (!existingCart) {
     const cart: any = new Cart({
       customerId: req.user.userId,
-      products: product,
+      products: cartItems,
       totalPrice: product.price,
     });
     await cart.save();
+    return res.status(201).json({ message: "product added to cart" });
   } else {
-    const filteredProd = cartItems.filter((prod:any) => prod._id === product._id)
-    console.log(filteredProd)
-    // cartItems.forEach((prod:any) =>{
-    //   console.log(prod._id)
-    //   console.log(product._id)
-    //   console.log(prod)
-    //   // if(prod._id === product._id){
-    //   //   console.log(prod)
-    //   // }
-    // })
-    //   // console.log(eachProduct)
-    // // }  
-        
-    // })
-    // forEach(eachProduct in existingCart.products)
-    // // console.log('products ' + eachProduct._id)
-    // console.log(eachProduct._id == product._id)
-    //   // if (eachProduct._id === product._id) {
-        
-      //   console.log(eachProduct.quantity)
-      //   eachProduct.quantity = eachProduct.quantity + 1;
-      //   await existingCart.save();
-      //   console.log(eachProduct.quantity)
-      //   res.send('updated product quantity')
-      // } else {
-      //   await Cart.findByIdAndUpdate(existingCart._id, {
-      //     $push: { products: product },
-      //   });
-      //   return res.status(201).json({ message: 'added new product' });
-      // }
-      
+    // console.log(eachProduct)
+    for (eachProduct of existingCart.products)
+      if (eachProduct.productId === pId) {
+        eachProduct.quantity = eachProduct.quantity + 1;
+        existingCart.totalPrice += eachProduct.price;
+        await existingCart.save();
+        return res.status(200).json({ message: "product quantity updated" });
+      } else {
+        await Cart.findByIdAndUpdate(existingCart._id, {
+          $push: { products: cartItems },
+        });
+        return res.status(201).json({ message: "added new product" });
+      }
+  }
+};
+
+//Fetching cart items controller
+export const viewCart = async (req: any, res: any) => {
+  let cartItems: any;
+
+  try {
+    cartItems = await Cart.findOne({
+      customerId: req.user.userId,
+      status: "Pending",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
   }
 
-  res.send("done");
+  if (!cartItems) {
+    return res.status(404).json({ message: message.notFound });
+  }
+  res.status(200).json({ message: msg.success, cartItems });
+};
+
+//Checking out controller (after payment have been made)
+export const checkOut = async (req: any, res: any) => {
+  let order: any;
+
+  try {
+    order = await Cart.findOne({
+      customerId: req.user.userId,
+      status: "Pending",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+
+  if (!order) {
+    return res.status(404).json({ message: message.notFound });
+  }
+
+  order.status = "Success" || order.status;
+
+  try {
+    order.save();
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+
+  res.status(200).json({ message: msg.success, order });
+};
+
+//Fetching order details controller
+export const viewOrderDetails = async (req: any, res: any) => {
+  const { orderId } = req.params;
+  let order: any;
+  try {
+    order = await Cart.findById(orderId);
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+  if (!order) {
+    return res.status(404).json({ message: message.notFound });
+  }
+
+  res.status(200).json({ message: msg.success, order });
+};
+
+// Fetching all orders controller
+export const viewAllOrders = async (req: any, res: any) => {
+  let order: any;
+  try {
+    order = await Cart.find();
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+  if (!order) {
+    return res.status(404).json({ message: message.notFound });
+  }
+
+  res.status(200).json({ message: msg.success, order });
 };
