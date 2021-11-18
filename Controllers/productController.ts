@@ -1,3 +1,4 @@
+import { validationResult } from "express-validator";
 import message from "../middlewares/messages";
 import Product from "../models/product.model";
 import msg from "../middlewares/messages";
@@ -6,7 +7,12 @@ export const defaultMsg = async (req: string, res: any) => {
   res.status(200).json({ message: message.defaultMsg });
 };
 
+//Adding new product controller
 export const newProduct = async (req: any, res: any) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ message: msg.inputError });
+  }
   const { name, price, quantity } = req.body;
 
   const product: any = new Product({
@@ -24,6 +30,7 @@ export const newProduct = async (req: any, res: any) => {
   res.status(201).json({ messge: msg.newInputSuccess });
 };
 
+//Fetch product by ID controller
 export const getProductById = async (req: any, res: any) => {
   const { pId } = req.params;
 
@@ -40,6 +47,7 @@ export const getProductById = async (req: any, res: any) => {
   res.status(200).json({ Product: product });
 };
 
+//Fetch all products controller
 export const allProducts = async (req: any, res: any) => {
   const page = parseInt(req.query.page);
   const limit = parseInt(req.query.limit);
@@ -89,7 +97,12 @@ export const allProducts = async (req: any, res: any) => {
   });
 };
 
+//Edit product controller
 export const editProduct = async (req: any, res: any) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ message: msg.inputError });
+  }
   const {name, price, quantity} = req.body;
 
   let product: any;
@@ -116,6 +129,7 @@ export const editProduct = async (req: any, res: any) => {
   res.status(200).json({message: msg.success, Product: product})
 };
 
+//Delete product controller
 export const deleteProduct = async (req: any, res: any) => {
   const {pId} = req.params
   let product: any;
