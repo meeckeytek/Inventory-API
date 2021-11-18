@@ -7,12 +7,12 @@ const cartSchema = new mongoose.Schema(
       {
         productId: {type: mongoose.Types.ObjectId, ref: 'Product'},
         name: { type: String, required: true },
-        price: { type: Number, required: true },
-        quantity: { type: Number, required: true },
+        price: { type: Number, required: true, default: 0 },
+        quantity: { type: Number, required: true, default: 1 },
       },
     ],
     status: { type: String, default: "Pending" },
-    totalPrice: { type: Number, required: true },
+    totalPrice: { type: Number, required: true, default: 0 },
   },
   {
     timestamps: true,
