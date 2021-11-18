@@ -4,11 +4,22 @@ import { isAuth } from "../middlewares/util"
 import * as cartController from '../Controllers/cartController'
 const cartRoute = Router();
 
+//Default message when the default API is visited route
 cartRoute.get('/', cartController.defaultMsg);
 
-cartRoute.get('/addToCart/:pId', isAuth, cartController.addToCart);
+//Adding to cart route
+cartRoute.post('/addToCart', isAuth, cartController.addToCart);
 
-// 6193cb7985caea1a688e6330
+//Fetch cart items route
+cartRoute.get('/viewCart', isAuth, cartController.viewCart);
 
-// 6193cb7985caea1a688e632f
+//Checking out route
+cartRoute.get('/checkOut', isAuth, cartController.checkOut);
+
+//Fetching single order details route
+cartRoute.get('/viewOrderDetails/:orderId', isAuth, cartController.viewOrderDetails);
+
+//Fetching all orders route
+cartRoute.post('/allOrders', isAuth, cartController.viewAllOrders);
+
 export default cartRoute;
