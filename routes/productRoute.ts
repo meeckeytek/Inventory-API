@@ -1,18 +1,43 @@
-import {Router} from 'express'
-import * as productController from '../Controllers/productController'
+import { Router } from "express";
+import {check} from "express-validator";
+import * as productController from "../Controllers/productController";
+import { isAdmin, isAuth } from "../middlewares/util";
 const productRoute = Router();
 
-productRoute.get('/', productController.defaultMsg);
+//Default message when the default API is visited route
+productRoute.get("/", productController.defaultMsg);
 
-productRoute.post('/newProduct', productController.newProduct);
+//Adding new product route
+productRoute.post("/newProduct", isAuth, isAdmin, [
+    check('name').not().isEmpty(),
+    check('price').not().isEmpty(),
+    check('quantity').not().isEmpty()
+], productController.newProduct);
 
-productRoute.patch('/editProduct/:pId', productController.editProduct);
+//Editing product details route
+productRoute.patch(
+  "/editProduct/:pId",
+  isAuth,
+  isAdmin, [
+    check('name').not().isEmpty(),
+    check('price').not().isEmpty(),
+    check('quantity').not().isEmpty()
+],
+  productController.editProduct
+);
 
-productRoute.get('/getProductById/:pId', productController.getProductById);
+//fetching single product by product ID route
+productRoute.get("/getProductById/:pId", productController.getProductById);
 
-productRoute.post('/allProducts', productController.allProducts);
+//fetching all products route
+productRoute.post("/allProducts", productController.allProducts);
 
-productRoute.delete('/deleteProduct/:pId', productController.deleteProduct);
-
+//deleting product route
+productRoute.delete(
+  "/deleteProduct/:pId",
+  isAuth,
+  isAdmin,
+  productController.deleteProduct
+);
 
 export default productRoute;
