@@ -1,6 +1,7 @@
 import {Router} from 'express'
+import {check} from "express-validator"
 import * as userController from '../Controllers/userController'
-import { isAuth } from '../middlewares/util';
+import { isAdmin, isAuth } from '../middlewares/util';
 
 const userRoute = Router();
 
@@ -8,13 +9,23 @@ const userRoute = Router();
 userRoute.get('/', userController.defaultMsg);
 
 //Registering new user route
-userRoute.post('/newUser', userController.newUser);
+userRoute.post('/newUser',  [
+    check('firstName').not().isEmpty(),
+    check('lastName').not().isEmpty(),
+    check('userName').not().isEmpty(),
+    check('password').isLength({min: 6})
+], userController.newUser);
 
 // User authentication route
 userRoute.post('/auth', userController.auth);
 
 // Edit user details route
-userRoute.patch('/editUser/:uId', isAuth, userController.editUser);
+userRoute.patch('/editUser/:uId', isAuth, [
+    check('firstName').not().isEmpty(),
+    check('lastName').not().isEmpty(),
+    check('userName').not().isEmpty(),
+    check('password').isLength({min: 6})
+], userController.editUser);
 
 
 // User details route
