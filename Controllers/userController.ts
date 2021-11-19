@@ -1,6 +1,7 @@
-import msg from "../middlewares/messages";
 import bcrypt from "bcryptjs";
+import { validationResult } from "express-validator";
 import User from "../models/user.model";
+import msg from "../middlewares/messages";
 import { getToken } from "../middlewares/util";
 
 //Default message when the default API is visited
@@ -8,8 +9,12 @@ export const defaultMsg = async (req: string, res: any) => {
   return res.status(200).json({ message: msg.defaultMsg });
 };
 
-//Registering new user
+//Registering new user controller
 export const newUser = async (req: any, res: any) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ message: msg.inputError });
+  }
   const { firstName, lastName, userName, password, isAdmin } = req.body;
 
   let existed: any;
@@ -47,7 +52,7 @@ export const newUser = async (req: any, res: any) => {
   res.status(201).json({ message: msg.newInputSuccess });
 };
 
-// User authentication
+// User authentication controller
 export const auth = async (req: any, res: any) => {
   const { userName, password } = req.body;
 
@@ -76,14 +81,18 @@ export const auth = async (req: any, res: any) => {
   res.status(200).json(getToken(user));
 };
 
-// Edit user details
+// Edit user details controller
 export const editUser = async (req: any, res: any) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ message: msg.inputError });
+  }
   const { firstName, lastName, userName, password, isAdmin } = req.body;
 
   let user: any;
 
   try {
-    user = await User.findOne({ userName });
+    user = await User.findById(req.params.uId);
   } catch (error) {
     return res.status(500).json({ message: msg.serverError });
   }
@@ -112,3 +121,23 @@ export const editUser = async (req: any, res: any) => {
   }
   res.status(200).json({ message: msg.success });
 };
+
+
+// Edit user details controller
+export const userDetials = async (req: any, res: any) => {
+
+  let user: any;
+
+  try {
+    user = await User.findById(req.params.uId, '-password');
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+
+  if (!user) {
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  res.status(200).json(user)
+
+}
