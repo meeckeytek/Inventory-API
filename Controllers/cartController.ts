@@ -10,17 +10,21 @@ export const defaultMsg = async (req: string, res: any) => {
 
 //Adding product to cart controller
 export const addToCart = async (req: any, res: any) => {
-  const { pId } = req.body;
+  const { productId } = req.params;
 
   let product: any;
 
   try {
-    product = await Product.findById(pId);
+    product = await Product.findById(productId);
   } catch (error) {
     return res.status(500).json({ message: msg.serverError });
   }
 
   if (!product) {
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  if (product.quantity < 1) {
     return res.status(404).json({ message: msg.notFound });
   }
 
@@ -47,23 +51,79 @@ export const addToCart = async (req: any, res: any) => {
       products: cartItems,
       totalPrice: product.price,
     });
+    product.quantity -= 1;
+    await product.save();
     await cart.save();
     return res.status(201).json({ message: "product added to cart" });
   } else {
-    // console.log(eachProduct)
     for (eachProduct of existingCart.products)
-      if (eachProduct.productId === pId) {
-        eachProduct.quantity = eachProduct.quantity + 1;
+      if (JSON.stringify(eachProduct.productId) === JSON.stringify(productId)) {
+        eachProduct.quantity += 1;
         existingCart.totalPrice += eachProduct.price;
+        product.quantity -= 1;
+        await product.save();
         await existingCart.save();
         return res.status(200).json({ message: "product quantity updated" });
       } else {
         await Cart.findByIdAndUpdate(existingCart._id, {
           $push: { products: cartItems },
         });
+        existingCart.totalPrice += eachProduct.price;
+        product.quantity -= 1;
+        await product.save();
+        await existingCart.save();
         return res.status(201).json({ message: "added new product" });
       }
   }
+};
+
+//Adding product to cart controller
+export const removeFromCart = async (req: any, res: any) => {
+  const { orderId, productId } = req.body;
+
+  let order: any;
+
+  try {
+    order = await Cart.findOne({
+      customerId: req.user.userId,
+      _id: orderId,
+      status: "Pending",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: msg.serverError });
+  }
+
+  if (!order) {
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  if(order.products < 1){
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  let product: any;
+
+  try {
+    product = await Product.findById(productId);
+  } catch (error) {
+    return res.status(500).json({ message: 'msg.serverError' });
+  }
+
+  if (!product) {
+    return res.status(404).json({ message: msg.notFound });
+  }
+
+  for (let eachProduct of order.products)
+    if (JSON.stringify(eachProduct.productId) === JSON.stringify(productId)) {
+      product.quantity += eachProduct.quantity;
+      order.totalPrice -= (eachProduct.price * eachProduct.quantity);
+      await product.save();
+      await order.save();
+      await Cart.findByIdAndUpdate(orderId, {
+        $pull: { products: productId },
+      });
+      return res.status(200).json({ message: msg.success });
+    }
 };
 
 //Fetching cart items controller

@@ -8,7 +8,10 @@ const cartRoute = Router();
 cartRoute.get('/', cartController.defaultMsg);
 
 //Adding to cart route
-cartRoute.post('/addToCart', isAuth, cartController.addToCart);
+cartRoute.get('/addToCart/:productId', isAuth, cartController.addToCart);
+
+//Remove from cart route
+cartRoute.post('/removeFromCart/:orderId', isAuth, cartController.removeFromCart);
 
 //Fetch cart items route
 cartRoute.get('/viewCart', isAuth, cartController.viewCart);
